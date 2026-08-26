@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>СПРАВА №0147 — Досьє слідчого</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --board:#1F2320; --board-2:#262b27; --paper:#F2E9D8; --paper-2:#E8DBBE;
+    --ink:#2A2118; --ink-soft:#5b4d3c; --red:#A63A2E; --red-soft:#c25143; --amber:#D89B3C;
+    --blue-soft:#3d6b8a; --board-text:#EDE6D6; --board-text-dim:#a9a397; --good:#4c7a52; --bad:#a63a2e;
+    --shadow: 0 18px 40px rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 20% 15%, rgba(255,255,255,.03), transparent 40%),
+      radial-gradient(circle at 80% 85%, rgba(255,255,255,.025), transparent 45%),
+      repeating-linear-gradient(135deg, rgba(255,255,255,.015) 0 2px, transparent 2px 6px),
+      var(--board);
+    color:var(--board-text); font-family:'IBM Plex Sans', sans-serif;
+    display:flex; flex-direction:column; align-items:center; padding:28px 16px 60px;
+  }
+  .wrap{width:100%;max-width:760px;}
+
+  .header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:22px;flex-wrap:wrap;}
+  .case-tag{font-family:'Special Elite', monospace;letter-spacing:.06em;color:var(--red-soft);border:2px solid var(--red-soft);padding:6px 12px;transform:rotate(-2deg);display:inline-block;font-size:14px;}
+  .case-title{font-family:'Special Elite', monospace;font-size:26px;margin:10px 0 4px;color:var(--board-text);line-height:1.25;}
+  .case-sub{font-size:13px;color:var(--board-text-dim);max-width:440px;line-height:1.5;}
+  .countdown{background:var(--board-2);border:1px solid rgba(255,255,255,.08);border-radius:4px;padding:10px 14px;text-align:center;min-width:150px;}
+  .countdown .label{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--board-text-dim);margin-bottom:4px;}
+  .countdown .value{font-family:'IBM Plex Mono', monospace;font-size:18px;color:var(--amber);font-weight:600;}
+
+  .track-wrap{position:relative;margin:6px 0 26px;padding:18px 10px 8px;}
+  .track-line{position:absolute;left:26px;right:26px;top:34px;height:3px;background:rgba(255,255,255,.12);border-radius:2px;}
+  .track-line-fill{position:absolute;left:26px;top:34px;height:3px;background:var(--red-soft);border-radius:2px;width:0%;transition:width .6s ease;box-shadow:0 0 8px rgba(166,58,46,.6);}
+  .pins{position:relative;display:flex;justify-content:space-between;}
+  .pin{display:flex;flex-direction:column;align-items:center;gap:6px;z-index:2;width:52px;}
+  .pin-dot{width:30px;height:30px;border-radius:50%;background:var(--board-2);border:2px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--board-text-dim);transition:all .3s ease;}
+  .pin.active .pin-dot{background:var(--amber);border-color:var(--amber);color:var(--ink);box-shadow:0 0 0 4px rgba(216,155,60,.2);}
+  .pin-label{font-size:9px;text-align:center;color:var(--board-text-dim);line-height:1.2;}
+  .pin.active .pin-label{color:var(--board-text);}
+
+  .file-card{background:var(--paper);color:var(--ink);border-radius:2px;box-shadow:var(--shadow);padding:32px 30px 30px;position:relative;transform:rotate(-0.4deg);min-height:340px;}
+  .file-card::before{content:'';position:absolute;top:-14px;left:40px;width:26px;height:26px;background:var(--amber);border-radius:50%;box-shadow:0 4px 6px rgba(0,0,0,.35), inset -3px -3px 4px rgba(0,0,0,.25), inset 3px 3px 4px rgba(255,255,255,.3);}
+  .stamp{font-family:'Special Elite', monospace;font-size:12px;letter-spacing:.08em;color:var(--ink-soft);text-transform:uppercase;margin-bottom:14px;border-bottom:1px dashed rgba(42,33,24,.25);padding-bottom:10px;}
+  h2.ep-title{font-family:'Special Elite', monospace;font-size:21px;margin:0 0 14px;color:var(--ink);}
+  p.narr{font-size:15px;line-height:1.6;margin:0 0 16px;color:var(--ink);}
+
+  .evidence{background:var(--paper-2);border:1px solid rgba(42,33,24,.18);border-left:4px solid var(--red-soft);border-radius:3px;padding:16px 18px;margin:0 0 14px;font-size:14px;}
+  .evidence .ev-tag{font-family:'IBM Plex Mono', monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--red-soft);margin-bottom:8px;display:block;}
+  .mono-line{font-family:'IBM Plex Mono', monospace; font-size:12.5px; color:var(--ink-soft); line-height:1.7;}
+
+  /* ---- mockups: app window (metadata viewer) ---- */
+  .app-window{border-radius:6px;overflow:hidden;border:1px solid rgba(42,33,24,.2);margin:0 0 14px;box-shadow:0 3px 10px rgba(0,0,0,.12);}
+  .app-titlebar{background:#e2ddcf;padding:7px 10px;display:flex;align-items:center;gap:6px;}
+  .app-dot{width:9px;height:9px;border-radius:50%;}
+  .app-name{margin-left:6px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#6b5f4a;}
+  .app-body{display:flex;flex-wrap:wrap;background:#fff;}
+  .app-photo{width:140px;flex-shrink:0;}
+  .app-photo svg{display:block;width:100%;height:100%;}
+  .app-meta{flex:1;min-width:180px;padding:12px 16px;font-family:'IBM Plex Mono',monospace;font-size:12px;}
+  .meta-row{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px dashed rgba(42,33,24,.12);}
+  .meta-row span:first-child{color:#8a7c63;}
+  .meta-row span:last-child{color:var(--ink);font-weight:600;}
+
+  /* ---- mockups: social post card ---- */
+  .post-card{border:1px solid rgba(42,33,24,.18);border-radius:8px;overflow:hidden;margin:0 0 14px;background:#fff;box-shadow:0 3px 10px rgba(0,0,0,.1);}
+  .post-header{display:flex;align-items:center;gap:9px;padding:10px 14px;border-bottom:1px solid rgba(42,33,24,.08);}
+  .post-header .pname{font-weight:700;font-size:13.5px;color:var(--ink);}
+  .post-header .ptime{font-size:11px;color:#9a8c72;}
+  .post-photo{width:100%;line-height:0;}
+  .post-photo svg{display:block;width:100%;height:auto;}
+  .post-photo img{display:block;width:100%;height:220px;object-fit:cover;}
+  .photo-credit{padding:6px 14px 10px;font-size:10px;color:#a89a80;text-align:right;}
+  .post-caption{padding:10px 14px 4px;font-size:13.5px;color:var(--ink);}
+  .post-comment{margin:0 14px 12px;background:#f5f1e6;border-radius:10px;padding:7px 11px;font-size:12px;color:#5b4d3c;}
+  .post-tech{background:#1c2027;color:#8fd6c4;font-family:'IBM Plex Mono',monospace;font-size:11.5px;padding:9px 14px;display:flex;justify-content:space-between;}
+
+  /* ---- mockups: video frame (dashcam) ---- */
+  .video-frame{position:relative;border-radius:6px;overflow:hidden;margin:0 0 14px;background:#101317;box-shadow:0 3px 10px rgba(0,0,0,.25);}
+  .video-frame svg{display:block;width:100%;height:auto;}
+  .video-hud{position:absolute;inset:0;pointer-events:none;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#e8e8e8;}
+  .video-hud .rec{position:absolute;top:8px;left:10px;display:flex;align-items:center;gap:5px;}
+  .video-hud .rec-dot{width:7px;height:7px;border-radius:50%;background:#e14b3c;}
+  .video-hud .tc{position:absolute;bottom:8px;right:10px;background:rgba(0,0,0,.4);padding:2px 6px;border-radius:3px;}
+
+  .links-row{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px;}
+  .link-chip{font-family:'IBM Plex Mono', monospace;font-size:12px;color:#fff;background:var(--blue-soft);padding:6px 12px;border-radius:14px;text-decoration:none;display:inline-flex;align-items:center;gap:5px;transition:opacity .15s ease;}
+  .link-chip:hover{opacity:.85;}
+
+  .options{display:flex;flex-direction:column;gap:10px;margin-bottom:6px;}
+  .opt{text-align:left;background:#fff;border:1.5px solid rgba(42,33,24,.2);border-radius:4px;padding:12px 14px;font-size:14.5px;font-family:'IBM Plex Sans', sans-serif;color:var(--ink);cursor:pointer;transition:all .15s ease;}
+  .opt:hover:not(:disabled){border-color:var(--red-soft); background:#fffdf8;}
+  .opt:disabled{cursor:default;}
+  .opt.correct{background:#e9f3ea; border-color:var(--good); color:#2e4a31;}
+  .opt.wrong{background:#f7e9e7; border-color:var(--bad); color:#5a2620;}
+  .opt.dim{opacity:.55;}
+
+  .hint-btn{background:none;border:none;color:var(--ink-soft);text-decoration:underline dotted;font-size:12.5px;cursor:pointer;padding:0;margin-bottom:14px;font-family:'IBM Plex Mono', monospace;}
+  .hint-box{font-size:13px;background:#fff8e6;border:1px dashed var(--amber);padding:10px 12px;border-radius:3px;margin:-4px 0 16px;color:#6b4e17;}
+
+  .feedback{border-radius:3px;padding:14px 16px;margin:14px 0 8px;font-size:14px;line-height:1.55;}
+  .feedback.good{background:#e9f3ea; border:1px solid var(--good); color:#2e4a31;}
+  .feedback.bad{background:#f7e9e7; border:1px solid var(--bad); color:#5a2620;}
+  .feedback b{display:block;margin-bottom:4px;font-family:'Special Elite',monospace;font-size:13px;letter-spacing:.03em;}
+
+  .btn{font-family:'IBM Plex Sans', sans-serif;font-weight:600;font-size:14.5px;background:var(--ink);color:var(--paper);border:none;padding:12px 22px;border-radius:3px;cursor:pointer;transition:transform .12s ease, background .2s ease;}
+  .btn:hover{background:#443624;}
+  .btn:active{transform:scale(.97);}
+  .btn-row{display:flex;justify-content:flex-end;gap:10px;margin-top:6px;}
+
+  .score-line{font-family:'IBM Plex Mono', monospace;font-size:12px;color:var(--ink-soft);margin-top:18px;border-top:1px dashed rgba(42,33,24,.25);padding-top:10px;}
+  .badge{display:inline-block;font-family:'Special Elite', monospace;font-size:15px;background:var(--ink);color:var(--amber);padding:8px 16px;border-radius:3px;margin:10px 0 16px;}
+  .final-score{font-family:'IBM Plex Mono', monospace;font-size:38px;color:var(--ink);margin:0;}
+
+  footer{margin-top:26px;font-size:11.5px;color:var(--board-text-dim);text-align:center;max-width:600px;}
+
+  @media (max-width:480px){
+    .file-card{padding:24px 18px 24px;}
+    .case-title{font-size:21px;}
+    .pin{width:40px;}
+    .pin-label{display:none;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <div>
+      <span class="case-tag">CONFIDENTIAL</span>
+      <div class="case-title">СПРАВА №0147<br>«ІНВЕСТОР З ДУБАЮ»</div>
+      <div class="case-sub">Акаунт "Mark Stells" обіцяє "гарантовані 40% доходу на місяць" з "офісу в Дубаї". У кожному епізоді — реальна перевірка: відкрий Google чи Google Maps сам і знайди правильну відповідь.</div>
+    </div>
+    <div class="countdown">
+      <div class="label">До старту курсу</div>
+      <div class="value" id="countdown-value">—</div>
+    </div>
+  </div>
+
+  <div class="track-wrap">
+    <div class="track-line"></div>
+    <div class="track-line-fill" id="track-fill"></div>
+    <div class="pins" id="pins"></div>
+  </div>
+
+  <div class="file-card" id="file-card"></div>
+
+  <footer>
+    Персонаж "Mark Stells" і його акаунт — вигадані, для навчальної демонстрації. Але кожна перевірка в грі — реальна: координати, будівля, формат номерних знаків і часовий пояс Дубая відповідають дійсності. Використовуй ці техніки лише для перевірки публічної інформації про організації чи вигаданих навчальних кейсів — не для стеження за конкретними приватними людьми без їхньої згоди.
+  </footer>
+</div>
+
+<script>
+/* =========================================================
+   ЩОБ ЗМІНИТИ ДАТУ СТАРТУ КУРСУ — редагуй рядок нижче:
+   формат: 'YYYY-MM-DDTHH:mm:00'
+   ========================================================= */
+const COURSE_START = new Date('2026-09-15T10:00:00');
+
+const PIN_ICONS = ['📍','🏙️','🚗','🕐','❄️','🧩'];
+const PIN_LABELS = ['Координати','Будівля','Номери','Час','Клімат','Висновок'];
+
+const episodes = [
+  {
+    title: 'Епізод 1 · Координати з метаданих',
+    stamp: 'Джерело: EXIF-дані фото, опублікованого в профілі',
+    narr: 'Бот, що репостив фото "з мого офісу", не стер метадані оригінального файлу. Ось як цей файл виглядає у переглядачі метаданих.',
+    evidenceHTML: `
+      <div class="app-window">
+        <div class="app-titlebar">
+          <span class="app-dot" style="background:#e5605a;"></span>
+          <span class="app-dot" style="background:#e5b95a;"></span>
+          <span class="app-dot" style="background:#5ec27a;"></span>
+          <span class="app-name">MetaLook — перегляд EXIF</span>
+        </div>
+        <div class="app-body">
+          <div class="app-photo">
+            <svg viewBox="0 0 140 120" xmlns="http://www.w3.org/2000/svg">
+              <rect width="140" height="120" fill="#dce7ea"/>
+              <rect x="0" y="72" width="140" height="48" fill="#38424a"/>
+              <circle cx="112" cy="28" r="13" fill="#f4c363"/>
+              <rect x="8" y="58" width="13" height="62" fill="#5c6b74"/>
+              <rect x="24" y="42" width="15" height="78" fill="#4a5860"/>
+              <rect x="42" y="60" width="11" height="60" fill="#5c6b74"/>
+              <rect x="56" y="38" width="17" height="82" fill="#414d55"/>
+              <rect x="76" y="52" width="13" height="68" fill="#5c6b74"/>
+              <rect x="92" y="46" width="15" height="74" fill="#4a5860"/>
+            </svg>
+          </div>
+          <div class="app-meta">
+            <div class="meta-row"><span>GPSLatitude</span><span>50° 27' 2.9" N</span></div>
+            <div class="meta-row"><span>GPSLongitude</span><span>30° 31' 24.4" E</span></div>
+            <div class="meta-row"><span>Camera</span><span>iPhone 13 Pro</span></div>
+            <div class="meta-row"><span>Software</span><span>сторонній додаток</span></div>
+          </div>
+        </div>
+      </div>
+    `,
+    links: [{label:'Google Maps', url:'https://www.google.com/maps'}],
+    question: 'Яке місто відповідає цим координатам?',
+    options: ['Варшава', 'Мінськ', 'Київ', 'Стамбул'],
+    correct: 2,
+    hint: 'Це не Близький Схід — це столиця однієї зі східноєвропейських країн, на великій річці.',
+    explainCorrect: 'Правильно, це Київ. Метадані фото — один із найпростіших способів перевірити, де насправді було зроблено знімок, незалежно від підпису під ним.',
+    explainWrong: 'Ці координати вказують на Київ. Якщо вставити їх у Google Maps, це видно одразу — варто завжди перевіряти метадані фото, а не підпис під ним.'
+  },
+  {
+    title: 'Епізод 2 · Вигляд з вікна',
+    stamp: 'Джерело: сторіс "Мій ранок в офісі ☀️"',
+    narr: 'В іншому дописі автор показує вид з вікна на сусідню будівлю з дуже незвичною формою.',
+    evidenceHTML: `
+      <div class="post-card">
+        <div class="post-header">
+          <svg width="34" height="34" viewBox="0 0 34 34"><circle cx="17" cy="17" r="17" fill="#d9c7a3"/><circle cx="17" cy="13" r="6" fill="#8a6d4a"/><rect x="6" y="22" width="22" height="12" rx="6" fill="#8a6d4a"/></svg>
+          <div><div class="pname">Mark Stells</div><div class="ptime">Сьогодні, 09:14</div></div>
+        </div>
+        <div class="post-photo">
+          <svg viewBox="0 0 320 210" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="sky1" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#a9d4e8"/><stop offset="1" stop-color="#f2f7ee"/>
+              </linearGradient>
+              <linearGradient id="glassA" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#6f93ab"/><stop offset="1" stop-color="#3d5568"/>
+              </linearGradient>
+              <linearGradient id="glassB" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#84a6bb"/><stop offset="1" stop-color="#4c6a7d"/>
+              </linearGradient>
+            </defs>
+            <rect width="320" height="210" fill="url(#sky1)"/>
+            <circle cx="266" cy="38" r="20" fill="#fff8e0"/>
+            <rect x="14" y="150" width="24" height="60" fill="#b9c7c2"/>
+            <rect x="44" y="128" width="20" height="82" fill="#a9b8b3"/>
+            <rect x="258" y="140" width="26" height="70" fill="#b9c7c2"/>
+            <g>
+              <rect x="135" y="184" width="50" height="24" rx="2" fill="url(#glassA)" transform="rotate(0 160 196)"/>
+              <rect x="135" y="159" width="50" height="24" rx="2" fill="url(#glassB)" transform="rotate(8 160 171)"/>
+              <rect x="135" y="134" width="50" height="24" rx="2" fill="url(#glassA)" transform="rotate(16 160 146)"/>
+              <rect x="135" y="109" width="50" height="24" rx="2" fill="url(#glassB)" transform="rotate(24 160 121)"/>
+              <rect x="135" y="84" width="50" height="24" rx="2" fill="url(#glassA)" transform="rotate(32 160 96)"/>
+              <rect x="135" y="59" width="50" height="24" rx="2" fill="url(#glassB)" transform="rotate(40 160 71)"/>
+              <rect x="135" y="34" width="50" height="24" rx="2" fill="url(#glassA)" transform="rotate(48 160 46)"/>
+              <line x1="160" y1="34" x2="160" y2="14" stroke="#333" stroke-width="2"/>
+            </g>
+            <rect x="0" y="202" width="320" height="8" fill="#cddccd"/>
+          </svg>
+        </div>
+        <div class="post-caption">Доброго ранку з мого офісу ☀️ #дубай #інвестиції</div>
+        <div class="post-comment">💬 коментар: "це ж перша у світі закручена висотка!"</div>
+        <div class="photo-credit">Зображення: ілюстрація (не реальне фото)</div>
+      </div>
+    `,
+    links: [{label:'Google Search', url:'https://www.google.com/search?q=world%27s+first+twisting+skyscraper'}],
+    question: 'У якому місті насправді знаходиться будівля з такою формою?',
+    options: ['Дубай', 'Мальме, Швеція', 'Сінгапур', 'Торонто'],
+    correct: 1,
+    hint: 'Будівля називається "Turning Torso" і спроектована архітектором Сантьяго Калатравою.',
+    explainCorrect: 'Так, це "Turning Torso" в Мальме (Швеція) — перша у світі висотка з таким "закрученим" дизайном, відкрита в 2005 році. Жодного стосунку до Дубая.',
+    explainWrong: 'Ця будівля — "Turning Torso" в Мальме (Швеція), а не в обраному місці. Пошук за характерною фразою з підпису — швидкий спосіб перевірити справжню локацію будівлі на фото.'
+  },
+  {
+    title: 'Епізод 3 · Номерний знак у кадрі',
+    stamp: 'Джерело: відео "їду на зустріч з інвесторами"',
+    narr: 'На короткому відео у кадр на секунду потрапляє номерний знак автомобіля, яким їде автор.',
+    evidenceHTML: `
+      <div class="video-frame">
+        <svg viewBox="0 0 300 170" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="roadSky" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#4a5666"/><stop offset="0.6" stop-color="#2b3340"/><stop offset="1" stop-color="#171b21"/>
+            </linearGradient>
+            <linearGradient id="carBody" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#e06a52"/><stop offset="0.5" stop-color="#c94f3c"/><stop offset="1" stop-color="#8f2e22"/>
+            </linearGradient>
+            <linearGradient id="carRoof" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#d85d47"/><stop offset="1" stop-color="#a63a2e"/>
+            </linearGradient>
+            <radialGradient id="headlight" cx="50%" cy="50%" r="50%">
+              <stop offset="0" stop-color="#fff6d8" stop-opacity="0.9"/><stop offset="1" stop-color="#fff6d8" stop-opacity="0"/>
+            </radialGradient>
+            <linearGradient id="windowTint" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#cfe8ee"/><stop offset="1" stop-color="#8fb9c4"/>
+            </linearGradient>
+            <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.04 0"/></filter>
+          </defs>
+          <rect width="300" height="170" fill="url(#roadSky)"/>
+          <rect x="0" y="132" width="300" height="38" fill="#12151a"/>
+          <rect x="0" y="132" width="300" height="4" fill="#333a44"/>
+          <rect x="26" y="156" width="30" height="4" fill="#e3c86b" opacity="0.75"/>
+          <rect x="120" y="156" width="30" height="4" fill="#e3c86b" opacity="0.75"/>
+          <rect x="214" y="156" width="30" height="4" fill="#e3c86b" opacity="0.75"/>
+          <ellipse cx="88" cy="132" rx="60" ry="12" fill="url(#headlight)"/>
+          <ellipse cx="208" cy="132" rx="60" ry="12" fill="url(#headlight)"/>
+          <path d="M60,98 Q92,52 150,52 Q200,52 210,98 Z" fill="url(#carRoof)"/>
+          <rect x="38" y="92" width="196" height="46" rx="13" fill="url(#carBody)"/>
+          <rect x="78" y="68" width="34" height="24" rx="3" fill="url(#windowTint)"/>
+          <rect x="120" y="68" width="34" height="24" rx="3" fill="url(#windowTint)"/>
+          <rect x="38" y="116" width="196" height="7" fill="#5c1f16" opacity="0.55"/>
+          <circle cx="86" cy="136" r="17" fill="#0a0c0e"/><circle cx="86" cy="136" r="7" fill="#484f57"/><circle cx="86" cy="136" r="2.5" fill="#0a0c0e"/>
+          <circle cx="196" cy="136" r="17" fill="#0a0c0e"/><circle cx="196" cy="136" r="7" fill="#484f57"/><circle cx="196" cy="136" r="2.5" fill="#0a0c0e"/>
+          <circle cx="88" cy="102" r="4.5" fill="#fff6d8"/>
+          <circle cx="194" cy="102" r="4.5" fill="#c2352a"/>
+          <rect x="152" y="111" width="62" height="20" rx="2" fill="#fdfdfb" stroke="#c9c4b8"/>
+          <text x="183" y="126" font-family="IBM Plex Mono, monospace" font-size="13" text-anchor="middle" fill="#1a1a1a" letter-spacing="1">AB·123·CD</text>
+          <rect width="300" height="170" filter="url(#grain)"/>
+        </svg>
+        <div class="video-hud">
+          <div class="rec"><span class="rec-dot"></span>REC</div>
+          <div class="tc">00:07</div>
+        </div>
+      </div>
+      <div class="photo-credit">Зображення: ілюстрація (не реальне фото)</div>
+    `,
+    links: [{label:'Google Search', url:'https://www.google.com/search?q=license+plate+format+two+letters+three+digits+two+letters'}],
+    question: 'Номерний знак якого формату зображено в кадрі?',
+    options: ['ОАЕ', 'Німеччина', 'Франція', 'Велика Британія'],
+    correct: 2,
+    hint: 'Ця система у Франції називається SIV і діє з 2009 року.',
+    explainCorrect: 'Точно, це французький формат (SIV, з 2009 року): дві букви, три цифри, дві букви. Номерні знаки ОАЕ виглядають зовсім інакше.',
+    explainWrong: 'Формат "дві букви - три цифри - дві букви" — це французька система SIV, що діє з 2009 року. Номерні знаки ОАЕ мають інший вигляд і формат.'
+  },
+  {
+    title: 'Епізод 4 · Час публікації',
+    stamp: 'Джерело: технічна позначка публікації на платформі',
+    narr: 'Автор підписав фото так, ніби публікує його вранці з Дубая. Але платформа окремо показує технічну позначку часу публікації в UTC.',
+    evidenceHTML: `
+      <div class="post-card">
+        <div class="post-photo">
+          <svg viewBox="0 0 320 170" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="sky2" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#f9d9a0"/><stop offset="0.45" stop-color="#f2a76b"/><stop offset="1" stop-color="#c25a45"/>
+              </linearGradient>
+              <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
+                <stop offset="0" stop-color="#fff6da"/><stop offset="0.6" stop-color="#ffe1a6" stop-opacity="0.6"/><stop offset="1" stop-color="#ffe1a6" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+            <rect width="320" height="170" fill="url(#sky2)"/>
+            <circle cx="160" cy="118" r="70" fill="url(#sunGlow)"/>
+            <circle cx="160" cy="118" r="34" fill="#fff2d0"/>
+            <rect x="10" y="128" width="20" height="18" fill="#3a2f38" opacity="0.85"/>
+            <rect x="34" y="120" width="16" height="26" fill="#463847" opacity="0.85"/>
+            <rect x="270" y="124" width="18" height="22" fill="#3a2f38" opacity="0.85"/>
+            <rect x="0" y="144" width="320" height="26" fill="#241f2c"/>
+          </svg>
+        </div>
+        <div class="post-caption">Доброго ранку з Дубая ☀️ рівно 09:00 за місцевим часом</div>
+        <div class="post-tech"><span>час публікації (сервер)</span><span>07:00 UTC</span></div>
+        <div class="photo-credit">Зображення: ілюстрація (не реальне фото)</div>
+      </div>
+    `,
+    links: [{label:'Google Search', url:'https://www.google.com/search?q=Dubai+time+zone+UTC+offset'}],
+    question: 'Дубай має пояс UTC+4 (без переходу на літній час). Яка насправді місцева година в Дубаї, якщо публікація відбулась о 07:00 UTC?',
+    options: ['09:00', '11:00', '03:00', '07:00'],
+    correct: 1,
+    hint: 'До часу UTC потрібно додати 4 години — і жодних сезонних поправок.',
+    explainCorrect: 'Правильно: 07:00 UTC + 4 години = 11:00 в Дубаї, а не заявлені "09:00". Розбіжність у 2 години — ще один сигнал, що щось не сходиться.',
+    explainWrong: 'Дубай — це UTC+4 цілий рік, без переведення стрілок. Тож 07:00 UTC відповідає 11:00 в Дубаї, а не заявленим "09:00" — це вже друга розбіжність у справі.'
+  },
+  {
+    title: 'Епізод 5 · Вечірня прогулянка',
+    stamp: 'Джерело: сторіс "вечірня прогулянка 🌆"',
+    narr: 'У сторіс автор пише "вечірня прогулянка 🌆" і додає фото вулиці ввечері — у кадр випадково потрапила вивіска магазину з табло часу й температури.',
+    evidenceHTML: `
+      <div class="post-card">
+        <div class="post-photo">
+          <svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="duskSky" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#232a44"/><stop offset="1" stop-color="#4a4160"/>
+              </linearGradient>
+            </defs>
+            <rect width="320" height="200" fill="url(#duskSky)"/>
+            <rect x="0" y="150" width="320" height="50" fill="#181a22"/>
+            <rect x="10" y="60" width="46" height="90" fill="#2c2f3c"/>
+            <rect x="18" y="70" width="10" height="12" fill="#e8c878" opacity="0.8"/>
+            <rect x="34" y="70" width="10" height="12" fill="#3a3d4a"/>
+            <rect x="18" y="92" width="10" height="12" fill="#3a3d4a"/>
+            <rect x="34" y="92" width="10" height="12" fill="#e8c878" opacity="0.8"/>
+            <rect x="264" y="50" width="46" height="100" fill="#2c2f3c"/>
+            <rect x="272" y="64" width="10" height="12" fill="#e8c878" opacity="0.8"/>
+            <rect x="288" y="64" width="10" height="12" fill="#e8c878" opacity="0.6"/>
+            <rect x="90" y="118" width="140" height="82" fill="#3a3226"/>
+            <rect x="98" y="126" width="124" height="46" fill="#e9dcc0"/>
+            <rect x="108" y="134" width="46" height="30" fill="#5c4a30" opacity="0.5"/>
+            <rect x="162" y="134" width="46" height="30" fill="#5c4a30" opacity="0.5"/>
+            <rect x="120" y="90" width="100" height="26" rx="2" fill="#101317" stroke="#3a3f45"/>
+            <text x="170" y="108" font-family="IBM Plex Mono, monospace" font-size="15" text-anchor="middle" fill="#e5453a" letter-spacing="1">20:41  −3°C</text>
+            <rect x="90" y="172" width="140" height="6" fill="#1c1710"/>
+          </svg>
+        </div>
+        <div class="post-caption">Вечірня прогулянка 🌆</div>
+        <div class="photo-credit">Зображення: ілюстрація (не реальне фото)</div>
+      </div>
+    `,
+    links: [{label:'Google Search', url:'https://www.google.com/search?q=Dubai+coldest+temperature+ever+recorded'}],
+    question: 'На табло магазину видно температуру -3°C. Наскільки це узгоджується з тим, що фото знято в Дубаї?',
+    options: [
+      'Цілком узгоджується — взимку в Дубаї регулярно бувають морози до -3°C',
+      'Малоймовірно — навіть найхолодніший день в історії Дубая був трохи вище нуля',
+      'Неможливо перевірити температуру за старою вивіскою',
+      'Це не має значення для розслідування'
+    ],
+    correct: 1,
+    hint: 'Загугли рекордно низьку температуру, яку колись фіксували в Дубаї.',
+    explainCorrect: 'Правильно. Найхолодніший день в історії Дубая — трохи вище нуля (близько +2°C), і то це рідкісний рекорд. −3°C там практично неможливі — ще одна деталь, що не узгоджується з життям у Дубаї.',
+    explainWrong: 'Найхолодніший зафіксований день у Дубаї — трохи вище нуля (близько +2°C). −3°C на табло — деталь, яка не узгоджується з заявленим життям у Дубаї.'
+  }
+];
+
+const finalEpisode = {
+  title: 'Епізод 6 · Висновок',
+  stamp: 'Фінальний розділ справи',
+  narr: 'Ти перевірив п’ять окремих доказів із п’яти різних дописів: справжні координати з метаданих, справжню локацію будівлі з вікна, справжню країну номерного знака, справжній часовий пояс Дубая і температурний рекорд Дубая.',
+  evidenceHTML: `
+    <div class="evidence">
+      <div class="ev-tag">Зведення доказів</div>
+      <div class="mono-line">1. Координати з фото → Київ<br>2. Будівля з вікна → Мальме, Швеція<br>3. Номерний знак → Франція<br>4. Час публікації → не збігається з заявленою годиною в Дубаї<br>5. Температура на вивісці → неможлива для клімату Дубая</div>
+    </div>
+  `,
+  links: [],
+  question: 'Жоден із п’яти доказів не вказує на Дубай — і всі вказують на РІЗНІ місця чи явно суперечать заявленому. Як це найкраще пояснити?',
+  options: [
+    'Це просто збіг випадковостей, Дубай теж може бути правильним',
+    'Автор дійсно живе в Дубаї, а всі п’ять доказів — окремі дрібні помилки',
+    'Фото й деталі, вочевидь, узяті з різних чужих джерел (стокові фото, випадкові відео) — типова ознака сфабрикованого профілю, а не реального місця проживання',
+    'Неможливо зробити жодного висновку — треба закрити справу'
+  ],
+  correct: 2,
+  hint: 'Питання не "де він насправді", а що означає сама відсутність єдиної відповіді.',
+  explainCorrect: 'Саме так. Коли деталі профілю походять з п’яти різних, ніяк не пов’язаних між собою джерел — це означає не помилку в одному доказі, а патерн: контент явно зібраний з чужих джерел, а не відображає реальне життя автора. Це і є типова ознака сфабрикованої особи в інвестиційних шахрайствах.',
+  explainWrong: 'Найкраще пояснення — саме "патерн" сфабрикованості: деталі профілю походять з п’яти різних, не пов’язаних одне з одним джерел. Це не "збіг" і не "помилка одного доказу" — так виглядає профіль, зібраний з чужого контенту.'
+};
+
+let current = 0;
+let score = 0;
+let answered = false;
+
+function fmt(n){return n.toString().padStart(2,'0');}
+
+function updateCountdown(){
+  const el = document.getElementById('countdown-value');
+  const diff = COURSE_START - new Date();
+  if(diff <= 0){ el.textContent = 'Курс стартував!'; return; }
+  const d = Math.floor(diff / 86400000);
+  const h = Math.floor((diff % 86400000) / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  el.textContent = `${d} дн ${fmt(h)} год ${fmt(m)} хв`;
+}
+updateCountdown();
+setInterval(updateCountdown, 30000);
+
+function totalSteps(){ return episodes.length + 1; }
+
+function currentData(){
+  return current < episodes.length ? episodes[current] : finalEpisode;
+}
+
+function renderPins(){
+  const pins = document.getElementById('pins');
+  pins.innerHTML = '';
+  PIN_LABELS.forEach((label, i) => {
+    const pin = document.createElement('div');
+    pin.className = 'pin' + (i < current ? ' active' : '');
+    pin.innerHTML = `<div class="pin-dot">${PIN_ICONS[i]}</div><div class="pin-label">${label}</div>`;
+    pins.appendChild(pin);
+  });
+  const fillPct = (current / totalSteps()) * 100;
+  document.getElementById('track-fill').style.width = fillPct + '%';
+}
+
+function renderIntro(){
+  const card = document.getElementById('file-card');
+  card.innerHTML = `
+    <div class="stamp">Брифінг · доступ рівня "стажер"</div>
+    <h2 class="ep-title">Твоє завдання</h2>
+    <p class="narr">В мережі активно просувається акаунт "Mark Stells" — нібито фінансист із Дубая, що обіцяє "гарантовану доходність 40% на місяць". До нас надійшли скарги від людей, які втратили гроші.</p>
+    <p class="narr">Кожен доказ у цій справі — реальний факт, який ти маєш сам перевірити в Google чи Google Maps. Ігрові дані (координати, назва будівлі, формат номерів, часовий пояс) відповідають дійсності — просто перевір їх сам.</p>
+    <div class="btn-row"><button class="btn" onclick="startCase()">Відкрити справу №0147</button></div>
+  `;
+}
+
+function startCase(){
+  current = 0; score = 0;
+  renderPins();
+  renderEpisode();
+}
+
+function renderEpisode(){
+  answered = false;
+  const ep = currentData();
+  const isFinal = current >= episodes.length;
+  const card = document.getElementById('file-card');
+  const linksHTML = ep.links && ep.links.length ? `<div class="links-row">${ep.links.map(l => `<a class="link-chip" href="${l.url}" target="_blank" rel="noopener">↗ ${l.label}</a>`).join('')}</div>` : '';
+  card.innerHTML = `
+    <div class="stamp">${ep.stamp}</div>
+    <h2 class="ep-title">${ep.title}</h2>
+    <p class="narr">${ep.narr}</p>
+    ${ep.evidenceHTML}
+    ${linksHTML}
+    <p class="narr" style="font-weight:600;">${ep.question}</p>
+    <button class="hint-btn" id="hint-btn" onclick="showHint()">💡 Потрібна підказка? (–5 балів)</button>
+    <div class="options" id="options"></div>
+    <div id="feedback-slot"></div>
+    <div class="score-line">Бал за справу: ${score} · ${isFinal ? 'Фінальний висновок' : 'Епізод ' + (current+1) + ' з ' + episodes.length}</div>
+  `;
+  const optsWrap = document.getElementById('options');
+  ep.options.forEach((opt, i) => {
+    const b = document.createElement('button');
+    b.className = 'opt';
+    b.textContent = opt;
+    b.onclick = () => selectAnswer(i);
+    optsWrap.appendChild(b);
+  });
+  renderPins();
+}
+
+function showHint(){
+  const ep = currentData();
+  const btn = document.getElementById('hint-btn');
+  if(btn.dataset.used) return;
+  btn.dataset.used = '1';
+  const box = document.createElement('div');
+  box.className = 'hint-box';
+  box.textContent = '💡 ' + ep.hint;
+  btn.after(box);
+  btn.style.display = 'none';
+}
+
+function selectAnswer(i){
+  if(answered) return;
+  answered = true;
+  const ep = currentData();
+  const isFinal = current >= episodes.length;
+  const opts = document.querySelectorAll('#options .opt');
+  const hintUsed = document.getElementById('hint-btn').dataset.used === '1';
+  opts.forEach((o, idx) => {
+    o.disabled = true;
+    if(idx === ep.correct) o.classList.add('correct');
+    else if(idx === i) o.classList.add('wrong');
+    else o.classList.add('dim');
+  });
+  document.getElementById('hint-btn').style.display = 'none';
+
+  const isCorrect = (i === ep.correct);
+  if(isCorrect) score += hintUsed ? 15 : 20;
+
+  const slot = document.getElementById('feedback-slot');
+  slot.innerHTML = `
+    <div class="feedback ${isCorrect ? 'good' : 'bad'}">
+      <b>${isCorrect ? '✅ Правильний висновок' : '❌ Не зовсім так'}</b>
+      ${isCorrect ? ep.explainCorrect : ep.explainWrong}
+    </div>
+    <div class="btn-row">
+      <button class="btn" onclick="nextEpisode()">${isFinal ? 'Переглянути результат' : (current === episodes.length - 1 ? 'До фінального висновку →' : 'Наступний доказ →')}</button>
+    </div>
+  `;
+  document.querySelector('.score-line').textContent = `Бал за справу: ${score} · ${isFinal ? 'Фінальний висновок' : 'Епізод ' + (current+1) + ' з ' + episodes.length}`;
+}
+
+function nextEpisode(){
+  current++;
+  if(current > episodes.length){
+    renderFinal();
+  } else {
+    renderEpisode();
+  }
+}
+
+function renderFinal(){
+  renderPins();
+  const maxScore = totalSteps() * 20;
+  let tier, tierNote;
+  if(score >= 90){
+    tier = 'Кіберслідчий';
+    tierNote = 'Ти реально перевірив кожен факт сам — координати, будівлю, номерний знак, часовий пояс. Саме так працює справжній OSINT: не довіряти підпису, а перевіряти першоджерело.';
+  } else if(score >= 55){
+    tier = 'Аналітик-практик';
+    tierNote = 'Хороший результат — ти вже попрактикував реальні перевірки в Google і Google Maps. На курсі відточимо швидкість і додамо ще технік.';
+  } else {
+    tier = 'Новачок-спостерігач';
+    tierNote = 'Перше знайомство з реальною перевіркою фактів відбулось. На курсі розберемо кожну техніку детально і на складніших кейсах.';
+  }
+  const card = document.getElementById('file-card');
+  card.innerHTML = `
+    <div class="stamp">Справу закрито</div>
+    <h2 class="ep-title">Підсумок розслідування</h2>
+    <p class="final-score">${score} / ${maxScore}</p>
+    <div class="badge">${tier}</div>
+    <p class="narr">${tierNote}</p>
+    <p class="narr">"Mark Stells" — вигаданий персонаж, але кожен факт, який ти перевірив (Київ, Мальме, французький формат номерів, часовий пояс Дубая, температурний рекорд Дубая), — реальний. Це і є суть OSINT: не вигадка в грі, а звичка перевіряти будь-яке твердження в реальних відкритих джерелах.</p>
+    <p class="narr">На курсі розберемо ще з десяток подібних кейсів — уже складніших і на реальних, а не навчальних профілях.</p>
+  `;
+}
+
+renderPins();
+renderIntro();
+</script>
+</body>
+</html>
